@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>수입거래처 영업 CRM</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --blue:#2563eb;--blue-l:#dbeafe;--blue-d:#1d4ed8;
+      --violet:#7c3aed;--violet-l:#ede9fe;
+      --green:#059669;--green-l:#d1fae5;
+      --amber:#d97706;--amber-l:#fef3c7;
+      --red:#dc2626;--red-l:#fee2e2;
+      --gray:#6b7280;--gray-l:#f3f4f6;
+      --slate:#1e293b;
+      --bg:#f8fafc;
+      --border:#e2e8f0;
+      --r:12px;
+      --shadow:0 1px 4px rgba(0,0,0,.08);
+      --shadow-md:0 4px 16px rgba(0,0,0,.11);
+      --shadow-lg:0 8px 32px rgba(0,0,0,.15);
+    }
+    body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans KR',sans-serif;background:var(--bg);color:var(--slate);min-height:100vh}
+
+    /* ── Header ── */
+    header{background:#fff;border-bottom:1px solid var(--border);position:sticky;top:0;z-index:90;box-shadow:var(--shadow)}
+    .hdr{max-width:1280px;margin:0 auto;padding:0 20px;display:flex;align-items:center;gap:14px;height:60px}
+    .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:16px;white-space:nowrap;text-decoration:none;color:var(--slate)}
+    .logo-icon{width:32px;height:32px;background:linear-gradient(135deg,var(--blue),var(--violet));border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:17px;flex-shrink:0}
+    .search-wrap{flex:1;position:relative}
+    .search-wrap input{width:100%;padding:8px 14px 8px 38px;border:1.5px solid var(--border);border-radius:40px;font-size:13px;outline:none;background:var(--bg);transition:.2s}
+    .search-wrap input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1);background:#fff}
+    .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94a3b8;font-size:15px;pointer-events:none}
+    .hdr-btns{display:flex;gap:8px}
+    .btn{display:inline-flex;align-items:center;gap:5px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;border:none;transition:.15s;white-space:nowrap}
+    .btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:var(--blue-d)}
+    .btn-ocr{background:var(--violet);color:#fff}.btn-ocr:hover{background:#6d28d9}
+    .btn-outline{background:#fff;color:#475569;border:1.5px solid var(--border)}.btn-outline:hover{border-color:var(--blue);color:var(--blue)}
+
+    /* ── Layout ── */
+    .wrap{max-width:1280px;margin:0 auto;padding:24px 20px}
+
+    /* ── Stats ── */
+    .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px}
+    .stat{background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow)}
+    .stat-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#94a3b8;margin-bottom:6px}
+    .stat-val{font-size:26px;font-weight:800;color:var(--slate)}
+    .stat-sub{font-size:11px;color:#94a3b8;margin-top:3px}
+
+    /* ── Filter Bar ── */
+    .filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+    .filter-tag{padding:5px 13px;border-radius:20px;border:1.5px solid var(--border);background:#fff;font-size:12px;font-weight:600;color:#64748b;cursor:pointer;transition:.15s}
+    .filter-tag:hover{border-color:var(--blue);color:var(--blue)}
+    .filter-tag.on{background:var(--blue);border-color:var(--blue);color:#fff}
+    .sep{width:1px;height:20px;background:var(--border);margin:0 4px}
+    .country-select,.sort-select{padding:5px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:12px;color:#475569;background:#fff;outline:none;cursor:pointer}
+
+    /* ── List header ── */
+    .list-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+    .list-count{font-size:13px;color:#64748b}
+    .list-count strong{color:var(--slate)}
+
+    /* ── Card Grid ── */
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px}
+
+    .card{background:#fff;border:1.5px solid var(--border);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);cursor:pointer;transition:.2s;position:relative;overflow:hidden}
+    .card:hover{box-shadow:var(--shadow-md);border-color:#cbd5e1}
+    .card-accent{position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:4px 0 0 4px}
+    .card-accent.prospect{background:var(--blue)}
+    .card-accent.active   {background:var(--amber)}
+    .card-accent.closed   {background:var(--green)}
+    .card-accent.blocked  {background:var(--red)}
+    .card-accent.hold     {background:var(--gray)}
+
+    .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
+    .card-company{font-size:15px;font-weight:700;color:var(--slate);line-height:1.3}
+    .card-item{font-size:12px;color:#64748b;margin-top:2px}
+    .badge-row{display:flex;gap:5px;flex-wrap:wrap;flex-shrink:0}
+
+    .badge{display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+    .b-prospect{background:var(--blue-l);color:var(--blue)}
+    .b-active   {background:var(--amber-l);color:var(--amber)}
+    .b-closed   {background:var(--green-l);color:var(--green)}
+    .b-blocked  {background:var(--red-l);color:var(--red)}
+    .b-hold     {background:var(--gray-l);color:var(--gray)}
+    .b-ocr      {background:#f0fdf4;color:#16a34a;font-size:10px}
+    .b-manual   {background:#fefce8;color:#ca8a04;font-size:10px}
+    .b-high     {background:#fce7f3;color:#be185d}
+    .b-medium   {background:var(--amber-l);color:var(--amber)}
+
+    .card-info{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-bottom:10px}
+    .card-field{font-size:12px;color:#475569;display:flex;align-items:center;gap:4px;overflow:hidden}
+    .card-field .fi{font-size:13px;flex-shrink:0}
+    .card-field .fv{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .card-field a{color:var(--blue);text-decoration:none}.card-field a:hover{text-decoration:underline}
+
+    .card-country{display:inline-flex;align-items:center;gap:4px;font-size:12px;color:#64748b;background:var(--gray-l);padding:3px 9px;border-radius:20px;margin-bottom:8px;font-weight:500}
+
+    .card-memo{font-size:12px;color:#475569;background:#f8fafc;border-radius:8px;padding:8px 10px;line-height:1.5;border-left:3px solid var(--border)}
+    .card-memo.empty{color:#cbd5e1;font-style:italic}
+
+    .card-footer{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9}
+    .card-date{font-size:11px;color:#94a3b8}
+    .card-actions{display:flex;gap:6px}
+    .btn-xs{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;border:1.5px solid var(--border);cursor:pointer;background:#fff;transition:.15s}
+    .btn-xs:hover{border-color:var(--blue);color:var(--blue)}
+    .btn-xs.del:hover{border-color:var(--red);color:var(--red)}
+
+    /* ── Urgent highlight ── */
+    .card.urgent{border-color:#fca5a5}
+    .card.urgent .card-accent{background:var(--red)}
+
+    /* ── Empty State ── */
+    .empty{text-align:center;padding:60px 20px;color:#94a3b8;grid-column:1/-1}
+    .empty .ei{font-size:48px;margin-bottom:16px}
+    .empty h3{font-size:15px;color:#64748b}
+
+    /* ── Modal base ── */
+    .overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(3px);z-index:200;align-items:center;justify-content:center;padding:16px}
+    .overlay.open{display:flex}
+    .modal{background:#fff;border-radius:18px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:pop .22s ease}
+    @keyframes pop{from{opacity:0;transform:scale(.96) translateY(16px)}to{opacity:1;transform:none}}
+    .modal-hdr{padding:22px 24px 0;display:flex;justify-content:space-between;align-items:center}
+    .modal-title{font-size:17px;font-weight:800;color:var(--slate)}
+    .close-btn{width:30px;height:30px;border:none;background:#f1f5f9;border-radius:50%;cursor:pointer;font-size:14px;color:#64748b;display:flex;align-items:center;justify-content:center}
+    .close-btn:hover{background:#e2e8f0}
+    .modal-body{padding:18px 24px 24px}
+
+    /* ── Form ── */
+    .fg{margin-bottom:15px}
+    .fg label{display:block;font-size:12px;font-weight:700;color:#374151;margin-bottom:5px}
+    .fg label .req{color:var(--red);margin-left:2px}
+    .fc{width:100%;padding:9px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;color:var(--slate);outline:none;transition:.2s;font-family:inherit}
+    .fc:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+    textarea.fc{resize:vertical;min-height:70px;line-height:1.5}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .mf{display:flex;gap:10px;justify-content:flex-end;margin-top:6px}
+    .btn-cancel{padding:9px 18px;border:1.5px solid var(--border);border-radius:9px;background:#fff;color:#64748b;font-size:13px;font-weight:600;cursor:pointer}
+    .btn-save{padding:9px 22px;border:none;border-radius:9px;background:var(--blue);color:#fff;font-size:13px;font-weight:600;cursor:pointer}.btn-save:hover{background:var(--blue-d)}
+
+    .dup-warn{display:none;background:var(--red-l);border:1px solid #fca5a5;border-radius:9px;padding:9px 13px;font-size:12px;color:var(--red);font-weight:500;margin-bottom:14px}
+    .dup-warn.show{display:block}
+    .senior-warn{display:none;background:#fff7ed;border:1px solid #fed7aa;border-radius:9px;padding:9px 13px;font-size:12px;color:#c2410c;font-weight:500;margin-bottom:14px}
+    .senior-warn.show{display:block}
+
+    /* ── OCR Modal ── */
+    .ocr-drop{border:2px dashed var(--border);border-radius:var(--r);padding:40px 20px;text-align:center;cursor:pointer;transition:.2s;position:relative}
+    .ocr-drop:hover,.ocr-drop.drag{border-color:var(--violet);background:var(--violet-l)}
+    .ocr-drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+    .ocr-icon{font-size:40px;margin-bottom:12px}
+    .ocr-hint{font-size:13px;color:#64748b;line-height:1.6}
+    .ocr-hint strong{color:var(--slate)}
+    .ocr-preview{margin-top:14px;border-radius:10px;overflow:hidden;max-height:220px;display:none}
+    .ocr-preview img{width:100%;object-fit:contain;max-height:220px}
+    .ocr-progress{margin-top:14px;display:none}
+    .progress-bar{height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;margin-top:8px}
+    .progress-fill{height:100%;background:linear-gradient(90deg,var(--violet),var(--blue));border-radius:3px;transition:width .3s;width:0}
+    .ocr-status{font-size:12px;color:#64748b;margin-top:6px;text-align:center}
+    .ocr-raw{margin-top:14px;display:none}
+    .ocr-raw-text{background:#f8fafc;border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;color:#64748b;max-height:100px;overflow-y:auto;white-space:pre-wrap;font-family:monospace}
+    .ocr-fail-msg{display:none;background:var(--amber-l);border:1px solid #fcd34d;border-radius:9px;padding:10px 14px;font-size:12px;color:var(--amber);font-weight:500;margin-top:12px}
+    .ocr-fail-msg.show{display:block}
+    .ocr-divider{display:flex;align-items:center;gap:12px;margin:18px 0;color:#94a3b8;font-size:12px}
+    .ocr-divider::before,.ocr-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* ── Drawer ── */
+    .drawer-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.3);z-index:150}
+    .drawer-bg.open{display:block}
+    .drawer{position:fixed;right:0;top:0;bottom:0;width:440px;max-width:100vw;background:#fff;box-shadow:var(--shadow-lg);z-index:151;transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column}
+    .drawer.open{transform:none}
+    .drawer-hdr{padding:20px 20px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .drawer-hdr-btns{display:flex;gap:6px}
+    .drawer-body{flex:1;overflow-y:auto;padding:20px}
+
+    .d-company{font-size:20px;font-weight:800;color:var(--slate);margin-bottom:8px}
+    .d-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+    .d-row{display:flex;gap:8px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #f8fafc;font-size:13px;color:#374151}
+    .d-row .d-icon{font-size:15px;flex-shrink:0;width:20px}
+    .d-row .d-label{font-size:11px;color:#94a3b8;width:70px;flex-shrink:0;padding-top:1px}
+    .d-row .d-val{flex:1;word-break:break-word}
+    .d-row a{color:var(--blue);text-decoration:none}.d-row a:hover{text-decoration:underline}
+
+    .d-section{margin-top:20px}
+    .d-section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#94a3b8;margin-bottom:12px}
+
+    .status-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+    .s-opt{padding:9px 6px;border-radius:9px;border:2px solid var(--border);text-align:center;cursor:pointer;font-size:11px;font-weight:700;color:#64748b;transition:.15s}
+    .s-opt:hover{border-color:var(--blue);color:var(--blue)}
+    .s-opt.sel{background:var(--blue);border-color:var(--blue);color:#fff}
+    .s-opt .s-emoji{font-size:18px;display:block;margin-bottom:4px}
+
+    .priority-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:16px}
+    .p-opt{padding:7px;border-radius:8px;border:2px solid var(--border);text-align:center;cursor:pointer;font-size:12px;font-weight:700;color:#64748b;transition:.15s}
+    .p-opt.sel-high{background:#fce7f3;border-color:#db2777;color:#be185d}
+    .p-opt.sel-normal{background:var(--blue-l);border-color:var(--blue);color:var(--blue)}
+    .p-opt.sel-low{background:var(--gray-l);border-color:#9ca3af;color:#6b7280}
+
+    .memo-area{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;resize:vertical;min-height:80px;outline:none;transition:.2s;font-family:inherit;line-height:1.5}
+    .memo-area:focus{border-color:var(--blue)}
+    .btn-add-log{margin-top:7px;width:100%;padding:9px;border:none;border-radius:9px;background:var(--blue);color:#fff;font-size:13px;font-weight:700;cursor:pointer;transition:.15s}
+    .btn-add-log:hover{background:var(--blue-d)}
+    .next-date-row{display:flex;gap:8px;align-items:center;margin-bottom:14px}
+    .next-date-row input{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;outline:none}.next-date-row input:focus{border-color:var(--blue)}
+    .btn-set-date{padding:8px 12px;border:none;border-radius:8px;background:var(--amber);color:#fff;font-size:12px;font-weight:600;cursor:pointer}
+
+    .log-list{list-style:none}
+    .log-item{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid #f1f5f9}
+    .log-item:last-child{border-bottom:none}
+    .log-dot{width:8px;height:8px;border-radius:50%;background:var(--blue);margin-top:5px;flex-shrink:0}
+    .log-txt{font-size:13px;color:#374151;line-height:1.5}
+    .log-time{font-size:11px;color:#94a3b8;margin-top:2px}
+    .no-log{font-size:12px;color:#cbd5e1;padding:12px 0;font-style:italic}
+
+    /* ── Toast ── */
+    .toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(80px);background:#1e293b;color:#fff;padding:9px 22px;border-radius:40px;font-size:13px;font-weight:500;z-index:300;transition:transform .28s;white-space:nowrap}
+    .toast.show{transform:translateX(-50%) translateY(0)}
+
+    /* ── Senior Import ── */
+    .senior-section{background:#fffbeb;border:1px solid #fcd34d;border-radius:var(--r);padding:16px;margin-bottom:20px}
+    .senior-section-title{font-size:13px;font-weight:700;color:#92400e;margin-bottom:8px}
+    .senior-section p{font-size:12px;color:#78350f;margin-bottom:10px}
+    .senior-section textarea{width:100%;padding:8px;border:1px solid #fcd34d;border-radius:7px;font-size:12px;height:60px;resize:none;outline:none;background:#fffff0;font-family:monospace}
+    .senior-section .btn-load{padding:6px 14px;background:var(--amber);border:none;border-radius:7px;color:#fff;font-size:12px;font-weight:600;cursor:pointer}
+
+    /* ── CSV Export ── */
+    .toolbar{display:flex;gap:8px;align-items:center;margin-left:auto}
+
+    @media(max-width:720px){
+      .hdr{padding:0 12px;gap:8px;height:52px}
+      .logo span{display:none}
+      .wrap{padding:14px 12px}
+      .stats{grid-template-columns:repeat(3,1fr);gap:8px}
+      .stats .stat:nth-child(4),.stats .stat:nth-child(5){display:none}
+      .grid{grid-template-columns:1fr}
+      .drawer{width:100vw}
+      .row2,.row3{grid-template-columns:1fr}
+      .status-grid{grid-template-columns:repeat(2,1fr)}
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══ Header ═══ -->
+<header>
+  <div class="hdr">
+    <a class="logo" href="#">
+      <div class="logo-icon">🌐</div>
+      <span>수입거래처 CRM</span>
+    </a>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="searchInput" placeholder="회사명, 담당자, 아이템, 수입지 검색..." autocomplete="off" />
+    </div>
+    <div class="hdr-btns">
+      <button class="btn btn-ocr" onclick="openOcrModal()">📷 OCR 등록</button>
+      <button class="btn btn-primary" onclick="openAddModal()">＋ 수기 등록</button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ Main ═══ -->
+<div class="wrap">
+
+  <!-- Stats -->
+  <div class="stats">
+    <div class="stat"><div class="stat-lbl">전체</div><div class="stat-val" id="sTotal">0</div><div class="stat-sub">등록 거래처</div></div>
+    <div class="stat"><div class="stat-lbl">영업 후보</div><div class="stat-val" id="sProspect" style="color:var(--blue)">0</div><div class="stat-sub">신규 발굴</div></div>
+    <div class="stat"><div class="stat-lbl">영업 중</div><div class="stat-val" id="sActive" style="color:var(--amber)">0</div><div class="stat-sub">진행 중</div></div>
+    <div class="stat"><div class="stat-lbl">거래 성사</div><div class="stat-val" id="sClosed" style="color:var(--green)">0</div><div class="stat-sub">계약 완료</div></div>
+    <div class="stat"><div class="stat-lbl">영업 불가</div><div class="stat-val" id="sBlocked" style="color:var(--red)">0</div><div class="stat-sub">선배 담당</div></div>
+  </div>
+
+  <!-- Senior client loader (collapsible) -->
+  <details class="senior-section" id="seniorSection">
+    <summary style="cursor:pointer;font-size:13px;font-weight:700;color:#92400e;list-style:none;display:flex;align-items:center;gap:6px;">
+      <span>⚠️ 선배 거래처 목록 불러오기</span>
+      <span style="font-size:11px;font-weight:400;color:#b45309">(등록하면 중복 시 영업불가 자동 표시)</span>
+    </summary>
+    <p style="margin-top:8px">선배 업체명을 한 줄에 하나씩 붙여넣기 하세요.</p>
+    <textarea id="seniorInput" placeholder="(주)한국산업&#10;미래유통(주)&#10;테크솔루션즈..."></textarea>
+    <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+      <button class="btn-load" onclick="loadSeniorClients()">목록 저장</button>
+      <span id="seniorCount" style="font-size:12px;color:#92400e"></span>
+    </div>
+  </details>
+
+  <!-- Filter Bar -->
+  <div class="filter-bar">
+    <button class="filter-tag on" data-f="all">전체</button>
+    <button class="filter-tag" data-f="prospect">영업 후보</button>
+    <button class="filter-tag" data-f="active">영업 중</button>
+    <button class="filter-tag" data-f="closed">성사</button>
+    <button class="filter-tag" data-f="blocked">영업 불가</button>
+    <button class="filter-tag" data-f="hold">보류</button>
+    <div class="sep"></div>
+    <select class="country-select" id="countryFilter"><option value="">🌍 수입지 전체</option></select>
+    <div class="sep"></div>
+    <select class="sort-select" id="sortSel">
+      <option value="recent">최근 연락순</option>
+      <option value="name">회사명순</option>
+      <option value="priority">우선순위순</option>
+      <option value="next">다음연락 임박순</option>
+    </select>
+    <div class="toolbar">
+      <button class="btn btn-outline" onclick="exportCsv()" title="엑셀로 내보내기">📥 내보내기</button>
+    </div>
+  </div>
+
+  <!-- List header -->
+  <div class="list-hdr">
+    <div class="list-count">총 <strong id="visCount">0</strong>개 거래처</div>
+  </div>
+
+  <!-- Card Grid -->
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- ═══ OCR Modal ═══ -->
+<div class="overlay" id="ocrOverlay" onclick="closeBg(event,'ocrOverlay')">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-hdr">
+      <div class="modal-title">📷 원산지 라벨 OCR 등록</div>
+      <button class="close-btn" onclick="closeOcr()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:#64748b;margin-bottom:14px;line-height:1.6">
+        원산지 정보가 담긴 사진을 업로드하면 <strong>수입자, 주소, 전화번호, 품목</strong> 등을 자동으로 인식합니다.
+      </p>
+      <div class="ocr-drop" id="ocrDrop" onclick="document.getElementById('ocrFile').click()">
+        <input type="file" id="ocrFile" accept="image/*" onchange="handleOcrFile(this)" />
+        <div class="ocr-icon">🖼️</div>
+        <div class="ocr-hint"><strong>클릭하거나 사진을 여기에 드래그</strong><br/>JPG, PNG, WEBP 지원 · 선명할수록 인식률 향상</div>
+      </div>
+      <div class="ocr-preview" id="ocrPreview"><img id="ocrImg" src="" alt="미리보기" /></div>
+      <div class="ocr-progress" id="ocrProgress">
+        <div class="ocr-status" id="ocrStatus">텍스트 인식 중...</div>
+        <div class="progress-bar"><div class="progress-fill" id="ocrFill"></div></div>
+      </div>
+      <div class="ocr-raw" id="ocrRawWrap">
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;font-weight:600">인식된 원본 텍스트</div>
+        <div class="ocr-raw-text" id="ocrRawText"></div>
+      </div>
+      <div class="ocr-fail-msg" id="ocrFailMsg">
+        ⚠️ 사진 인식이 어렵습니다. 아래 양식을 직접 입력해 주세요.
+      </div>
+
+      <div class="ocr-divider">인식된 정보 확인 및 수정</div>
+
+      <!-- OCR pre-filled form (same as add form) -->
+      <div id="ocrFormWrap">
+        <div class="row2">
+          <div class="fg"><label>회사명(수입자) <span class="req">*</span></label><input class="fc" id="of_company" placeholder="(주)ABC무역" /></div>
+          <div class="fg"><label>아이템/용도</label><input class="fc" id="of_item" placeholder="신발, 의류, 화장품..." /></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>전화번호</label><input class="fc" id="of_phone" placeholder="02-0000-0000" /></div>
+          <div class="fg"><label>수입지(원산지/국가)</label><input class="fc" id="of_country" placeholder="중국, 베트남, 일본..." /></div>
+        </div>
+        <div class="fg"><label>주소</label><input class="fc" id="of_address" placeholder="서울특별시 강남구..." /></div>
+        <div class="row2">
+          <div class="fg"><label>담당자</label><input class="fc" id="of_contact" placeholder="홍길동 팀장" /></div>
+          <div class="fg"><label>이메일</label><input class="fc" id="of_email" placeholder="contact@company.com" /></div>
+        </div>
+        <div class="row2">
+          <div class="fg"><label>웹사이트</label><input class="fc" id="of_website" placeholder="https://..." /></div>
+          <div class="fg"><label>제조사</label><input class="fc" id="of_manufacturer" placeholder="해외 제조원 이름" /></div>
+        </div>
+        <div class="fg"><label>메모</label><textarea class="fc" id="of_memo" placeholder="추가 내용을 적어주세요..."></textarea></div>
+        <div class="mf">
+          <button class="btn-cancel" onclick="closeOcr()">취소</button>
+          <button class="btn-save" onclick="saveOcrClient()">영업 후보로 등록</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Add/Edit Modal ═══ -->
+<div class="overlay" id="addOverlay" onclick="closeBg(event,'addOverlay')">
+  <div class="modal">
+    <div class="modal-hdr">
+      <div class="modal-title" id="addTitle">거래처 등록</div>
+      <button class="close-btn" onclick="closeAdd()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="dup-warn" id="dupWarn">⚠️ 이미 동일한 이름의 거래처가 있습니다: <strong id="dupName"></strong></div>
+      <div class="senior-warn" id="seniorWarn">🚫 선배 담당 거래처입니다. 영업 불가로 등록됩니다.</div>
+      <div class="row2">
+        <div class="fg"><label>회사명 <span class="req">*</span></label><input class="fc" id="f_company" placeholder="(주)ABC무역" oninput="checkDup(this.value)" /></div>
+        <div class="fg"><label>아이템/용도</label><input class="fc" id="f_item" placeholder="신발, 의류, 화장품..." /></div>
+      </div>
+      <div class="row3">
+        <div class="fg"><label>전화번호</label><input class="fc" id="f_phone" placeholder="02-0000-0000" /></div>
+        <div class="fg"><label>수입지(국가)</label><input class="fc" id="f_country" placeholder="중국, 베트남..." /></div>
+        <div class="fg"><label>영업 상태</label>
+          <select class="fc" id="f_status">
+            <option value="prospect">영업 후보</option>
+            <option value="active">영업 중</option>
+            <option value="closed">거래 성사</option>
+            <option value="hold">보류</option>
+            <option value="blocked">영업 불가</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label>주소</label><input class="fc" id="f_address" placeholder="서울특별시 강남구 테헤란로..." /></div>
+      <div class="row2">
+        <div class="fg"><label>담당자</label><input class="fc" id="f_contact" placeholder="홍길동 팀장" /></div>
+        <div class="fg"><label>이메일</label><input class="fc" id="f_email" placeholder="contact@company.com" /></div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label>웹사이트</label><input class="fc" id="f_website" placeholder="https://..." /></div>
+        <div class="fg"><label>제조사(원산지 라벨 기준)</label><input class="fc" id="f_manufacturer" placeholder="해외 제조원" /></div>
+      </div>
+      <div class="row2">
+        <div class="fg"><label>우선순위</label>
+          <select class="fc" id="f_priority">
+            <option value="high">🔴 고우선순위</option>
+            <option value="normal" selected>🟡 일반</option>
+            <option value="low">⚪ 저우선순위</option>
+          </select>
+        </div>
+        <div class="fg"><label>다음 연락 예정일</label><input class="fc" type="date" id="f_nextDate" /></div>
+      </div>
+      <div class="fg"><label>메모</label><textarea class="fc" id="f_memo" placeholder="현재 영업 상황을 입력하세요..."></textarea></div>
+      <div class="mf">
+        <button class="btn-cancel" onclick="closeAdd()">취소</button>
+        <button class="btn-save" onclick="saveClient()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ Detail Drawer ═══ -->
+<div class="drawer-bg" id="drawerBg" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-hdr">
+    <button class="close-btn" onclick="closeDrawer()">✕</button>
+    <div class="drawer-hdr-btns">
+      <button class="btn-xs" onclick="editDrawer()">✏️ 수정</button>
+      <button class="btn-xs del" onclick="delDrawer()">🗑 삭제</button>
+    </div>
+  </div>
+  <div class="drawer-body" id="drawerBody"></div>
+</div>
+
+<!-- ═══ Toast ═══ -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+// Constants
+// ══════════════════════════════════════════════
+const SK = 'importer_crm_v1';
+const SK_SENIOR = 'importer_crm_senior_v1';
+
+const STATUS = {
+  prospect: { label:'영업 후보', badge:'b-prospect', accent:'prospect', emoji:'🔵' },
+  active:   { label:'영업 중',   badge:'b-active',   accent:'active',   emoji:'🟡' },
+  closed:   { label:'거래 성사', badge:'b-closed',   accent:'closed',   emoji:'🟢' },
+  blocked:  { label:'영업 불가', badge:'b-blocked',  accent:'blocked',  emoji:'🔴' },
+  hold:     { label:'보류',      badge:'b-hold',     accent:'hold',     emoji:'⚪' },
+};
+
+const PRIORITY = {
+  high:   { label:'고우선순위', color:'#be185d' },
+  normal: { label:'일반',      color:null },
+  low:    { label:'저우선순위', color:'#9ca3af' },
+};
+
+const ACTIVE_S = new Set(['prospect','active']);
+
+// ══════════════════════════════════════════════
+// State
+// ══════════════════════════════════════════════
+let clients = [];
+let seniorClients = []; // array of lowercase company names
+let currentFilter = 'all';
+let currentSearch = '';
+let currentSort = 'recent';
+let currentCountry = '';
+let editingId = null;
+let drawerClientId = null;
+let ocrSource = false; // true = came from OCR
+
+// ══════════════════════════════════════════════
+// Storage
+// ══════════════════════════════════════════════
+function load() {
+  try { clients = JSON.parse(localStorage.getItem(SK) || '[]'); } catch { clients = []; }
+  try {
+    const s = JSON.parse(localStorage.getItem(SK_SENIOR) || '[]');
+    seniorClients = s.map(n => n.toLowerCase().replace(/\s/g,''));
+    updateSeniorCount();
+  } catch { seniorClients = []; }
+}
+function persist() { localStorage.setItem(SK, JSON.stringify(clients)); }
+function persistSenior() { localStorage.setItem(SK_SENIOR, JSON.stringify(seniorClients.map(n=>n))); }
+
+// ══════════════════════════════════════════════
+// Senior clients
+// ══════════════════════════════════════════════
+function loadSeniorClients() {
+  const raw = document.getElementById('seniorInput').value.trim();
+  if (!raw) return;
+  const names = raw.split('\n').map(l=>l.trim()).filter(Boolean);
+  seniorClients = names.map(n => n.toLowerCase().replace(/\s/g,''));
+  localStorage.setItem(SK_SENIOR, JSON.stringify(names));
+  // Re-check existing clients
+  clients.forEach(c => {
+    if (isSenior(c.company) && c.status !== 'blocked') {
+      c.status = 'blocked';
+    }
+  });
+  persist();
+  render();
+  updateSeniorCount();
+  showToast(`선배 거래처 ${names.length}개 저장됨`);
+}
+function isSenior(name) {
+  const key = (name||'').toLowerCase().replace(/\s/g,'');
+  return seniorClients.some(s => key.includes(s) || s.includes(key));
+}
+function updateSeniorCount() {
+  const el = document.getElementById('seniorCount');
+  if (el) el.textContent = seniorClients.length ? `현재 ${seniorClients.length}개 저장됨` : '';
+}
+
+// ══════════════════════════════════════════════
+// Render
+// ══════════════════════════════════════════════
+function getFiltered() {
+  let list = [...clients];
+  const q = currentSearch.toLowerCase();
+  if (q) list = list.filter(c =>
+    [c.company, c.item, c.contact, c.importCountry, c.address, c.manufacturer]
+      .some(v => v && v.toLowerCase().includes(q))
+  );
+  if (currentFilter !== 'all') list = list.filter(c => c.status === currentFilter);
+  if (currentCountry) list = list.filter(c => (c.importCountry||'').toLowerCase().includes(currentCountry.toLowerCase()));
+
+  const today = new Date().toISOString().slice(0,10);
+  if (currentSort === 'name')     list.sort((a,b)=>a.company.localeCompare(b.company,'ko'));
+  if (currentSort === 'recent')   list.sort((a,b)=>(b.lastContactDate||'').localeCompare(a.lastContactDate||''));
+  if (currentSort === 'priority') {
+    const po = {high:0,normal:1,low:2};
+    list.sort((a,b)=>(po[a.priority||'normal']||1)-(po[b.priority||'normal']||1));
+  }
+  if (currentSort === 'next') {
+    list.sort((a,b)=>{
+      if (!a.nextContactDate && !b.nextContactDate) return 0;
+      if (!a.nextContactDate) return 1;
+      if (!b.nextContactDate) return -1;
+      return a.nextContactDate.localeCompare(b.nextContactDate);
+    });
+  }
+  return list;
+}
+
+function render() {
+  const filtered = getFiltered();
+  // Stats
+  document.getElementById('sTotal').textContent    = clients.length;
+  document.getElementById('sProspect').textContent = clients.filter(c=>c.status==='prospect').length;
+  document.getElementById('sActive').textContent   = clients.filter(c=>c.status==='active').length;
+  document.getElementById('sClosed').textContent   = clients.filter(c=>c.status==='closed').length;
+  document.getElementById('sBlocked').textContent  = clients.filter(c=>c.status==='blocked').length;
+  document.getElementById('visCount').textContent  = filtered.length;
+
+  // Country dropdown
+  const countries = [...new Set(clients.map(c=>c.importCountry).filter(Boolean))].sort();
+  const cs = document.getElementById('countryFilter');
+  const prev = cs.value;
+  cs.innerHTML = '<option value="">🌍 수입지 전체</option>' +
+    countries.map(c=>`<option value="${esc(c)}" ${c===prev?'selected':''}>${esc(c)}</option>`).join('');
+
+  if (!filtered.length) {
+    document.getElementById('grid').innerHTML = `<div class="empty"><div class="ei">🔍</div><h3>검색 결과가 없습니다</h3><p style="margin-top:6px;font-size:12px">다른 검색어나 필터를 사용해 보세요</p></div>`;
+    return;
+  }
+  document.getElementById('grid').innerHTML = filtered.map(c=>buildCard(c)).join('');
+  document.querySelectorAll('.card').forEach(el => {
+    el.addEventListener('click', e => { if (!e.target.closest('.btn-xs')) openDrawer(el.dataset.id); });
+  });
+}
+
+function buildCard(c) {
+  const sm = STATUS[c.status] || STATUS.prospect;
+  const today = new Date().toISOString().slice(0,10);
+  const isUrgent = c.nextContactDate && c.nextContactDate <= today && c.status !== 'closed';
+  const urgentStr = isUrgent ? ' urgent' : '';
+
+  const priorityBadge = c.priority === 'high'
+    ? `<span class="badge b-high">🔴 고우선</span>` : '';
+  const sourceBadge = c.source === 'ocr'
+    ? `<span class="badge b-ocr">📷 OCR</span>`
+    : `<span class="badge b-manual">✏️ 수기</span>`;
+
+  const countryStr = c.importCountry
+    ? `<div class="card-country">${countryFlag(c.importCountry)} ${esc(c.importCountry)}</div>` : '';
+  const addressStr = c.address
+    ? `<div class="card-field"><span class="fi">📍</span><span class="fv"><a href="${mapUrl(c.address)}" target="_blank" onclick="e=>e.stopPropagation()">${esc(c.address)}</a></span></div>` : '';
+  const phoneStr = c.phone
+    ? `<div class="card-field"><span class="fi">📞</span><span class="fv">${esc(c.phone)}</span></div>` : '';
+  const emailStr = c.email
+    ? `<div class="card-field"><span class="fi">✉️</span><span class="fv"><a href="mailto:${esc(c.email)}" onclick="e=>e.stopPropagation()">${esc(c.email)}</a></span></div>` : '';
+  const siteStr = c.website
+    ? `<div class="card-field"><span class="fi">🔗</span><span class="fv"><a href="${esc(c.website)}" target="_blank" onclick="e=>e.stopPropagation()">${esc(c.website.replace(/https?:\/\//,''))}</a></span></div>` : '';
+  const mfStr = c.manufacturer
+    ? `<div class="card-field"><span class="fi">🏭</span><span class="fv">${esc(c.manufacturer)}</span></div>` : '';
+  const nextStr = c.nextContactDate
+    ? `<div class="card-field" style="grid-column:1/-1"><span class="fi">${isUrgent?'🚨':'📅'}</span><span class="fv" style="${isUrgent?'color:var(--red);font-weight:700':''}">다음 연락 예정: ${c.nextContactDate}</span></div>` : '';
+
+  const memo = c.memo
+    ? `<div class="card-memo">${esc(c.memo)}</div>`
+    : `<div class="card-memo empty">메모 없음</div>`;
+
+  return `<div class="card${urgentStr}" data-id="${c.id}">
+    <div class="card-accent ${sm.accent}"></div>
+    <div class="card-top">
+      <div>
+        <div class="card-company">${esc(c.company)}</div>
+        ${c.item ? `<div class="card-item">🏷 ${esc(c.item)}</div>` : ''}
+      </div>
+      <div class="badge-row">
+        <span class="badge ${sm.badge}">${sm.label}</span>
+        ${priorityBadge}
+        ${sourceBadge}
+      </div>
+    </div>
+    ${countryStr}
+    <div class="card-info">
+      ${phoneStr}${emailStr}${addressStr}${siteStr}${mfStr}${nextStr}
+    </div>
+    ${memo}
+    <div class="card-footer">
+      <span class="card-date">${c.lastContactDate ? '📅 '+c.lastContactDate : ''}</span>
+      <div class="card-actions">
+        <button class="btn-xs" onclick="openEditModal('${c.id}')">수정</button>
+        <button class="btn-xs del" onclick="confirmDel('${c.id}')">삭제</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+// Drawer
+// ══════════════════════════════════════════════
+function openDrawer(id) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  drawerClientId = id;
+  const sm = STATUS[c.status] || STATUS.prospect;
+  const today = new Date().toISOString().slice(0,10);
+
+  const statusOpts = Object.entries(STATUS).map(([k,v])=>`
+    <div class="s-opt ${c.status===k?'sel':''}" onclick="changeStatus('${id}','${k}',this)">
+      <span class="s-emoji">${v.emoji}</span>${v.label}
+    </div>`).join('');
+
+  const priOpts = ['high','normal','low'].map(p=>`
+    <div class="p-opt ${c.priority===p?'sel-'+p:''}" onclick="changePriority('${id}','${p}',this)">
+      ${{high:'🔴 고우선',normal:'🟡 일반',low:'⚪ 저우선'}[p]}
+    </div>`).join('');
+
+  const logItems = (c.logs||[]).slice().reverse().map(l=>`
+    <li class="log-item">
+      <div class="log-dot"></div>
+      <div><div class="log-txt">${esc(l.text)}</div><div class="log-time">${l.date}</div></div>
+    </li>`).join('') || '<p class="no-log">아직 기록이 없습니다.</p>';
+
+  document.getElementById('drawerBody').innerHTML = `
+    <div class="d-company">${esc(c.company)}</div>
+    <div class="d-badges">
+      <span class="badge ${sm.badge}">${sm.label}</span>
+      ${c.source==='ocr'?'<span class="badge b-ocr">📷 OCR 등록</span>':'<span class="badge b-manual">✏️ 수기 등록</span>'}
+      ${c.priority==='high'?'<span class="badge b-high">🔴 고우선순위</span>':''}
+    </div>
+    <div class="d-row"><span class="d-icon">🏷</span><span class="d-label">아이템</span><span class="d-val">${esc(c.item||'-')}</span></div>
+    <div class="d-row"><span class="d-icon">🌍</span><span class="d-label">수입지</span><span class="d-val">${c.importCountry ? countryFlag(c.importCountry)+' '+esc(c.importCountry) : '-'}</span></div>
+    <div class="d-row"><span class="d-icon">📞</span><span class="d-label">전화</span><span class="d-val">${esc(c.phone||'-')}</span></div>
+    <div class="d-row"><span class="d-icon">👤</span><span class="d-label">담당자</span><span class="d-val">${esc(c.contact||'-')}</span></div>
+    <div class="d-row"><span class="d-icon">✉️</span><span class="d-label">이메일</span><span class="d-val">${c.email?`<a href="mailto:${esc(c.email)}">${esc(c.email)}</a>`:'-'}</span></div>
+    <div class="d-row"><span class="d-icon">📍</span><span class="d-label">주소</span><span class="d-val">${c.address?`<a href="${mapUrl(c.address)}" target="_blank">${esc(c.address)}</a>`:'-'}</span></div>
+    <div class="d-row"><span class="d-icon">🔗</span><span class="d-label">사이트</span><span class="d-val">${c.website?`<a href="${esc(c.website)}" target="_blank">${esc(c.website)}</a>`:'-'}</span></div>
+    <div class="d-row"><span class="d-icon">🏭</span><span class="d-label">제조사</span><span class="d-val">${esc(c.manufacturer||'-')}</span></div>
+    <div class="d-row"><span class="d-icon">📅</span><span class="d-label">최근연락</span><span class="d-val">${esc(c.lastContactDate||'-')}</span></div>
+    <div class="d-row"><span class="d-icon">${c.nextContactDate&&c.nextContactDate<=today?'🚨':'📌'}</span><span class="d-label">다음예정</span><span class="d-val" style="${c.nextContactDate&&c.nextContactDate<=today?'color:var(--red);font-weight:700':''}">${esc(c.nextContactDate||'-')}</span></div>
+
+    <div class="d-section">
+      <div class="d-section-title">영업 상태 변경</div>
+      <div class="status-grid">${statusOpts}</div>
+    </div>
+    <div class="d-section">
+      <div class="d-section-title">우선순위</div>
+      <div class="priority-grid">${priOpts}</div>
+    </div>
+    <div class="d-section">
+      <div class="d-section-title">다음 연락 예정일</div>
+      <div class="next-date-row">
+        <input type="date" id="drawerNextDate" value="${c.nextContactDate||''}" />
+        <button class="btn-set-date" onclick="saveNextDate('${id}')">저장</button>
+      </div>
+    </div>
+    <div class="d-section">
+      <div class="d-section-title">영업 메모 추가</div>
+      <textarea class="memo-area" id="drawerMemo" placeholder="오늘 진행한 내용을 기록하세요...">${esc(c.memo||'')}</textarea>
+      <button class="btn-add-log" onclick="addLog('${id}')">로그에 기록 + 저장</button>
+    </div>
+    <div class="d-section">
+      <div class="d-section-title">영업 히스토리 (${(c.logs||[]).length}건)</div>
+      <ul class="log-list">${logItems}</ul>
+    </div>
+  `;
+  document.getElementById('drawerBg').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+}
+function closeDrawer() {
+  document.getElementById('drawerBg').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+  drawerClientId = null;
+}
+function editDrawer()  { if(drawerClientId) openEditModal(drawerClientId); }
+function delDrawer()   { if(drawerClientId) { closeDrawer(); confirmDel(drawerClientId); } }
+
+function changeStatus(id, status, el) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  const prev = STATUS[c.status].label;
+  c.status = status;
+  c.lastContactDate = today();
+  pushLog(c, `상태 변경: ${prev} → ${STATUS[status].label}`);
+  persist(); render();
+  el.closest('.status-grid').querySelectorAll('.s-opt').forEach(o=>o.classList.remove('sel'));
+  el.classList.add('sel');
+  showToast('상태 저장됨');
+}
+function changePriority(id, priority, el) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  c.priority = priority;
+  persist(); render();
+  el.closest('.priority-grid').querySelectorAll('.p-opt').forEach(o=>{ o.className='p-opt'; });
+  el.classList.add('sel-'+priority);
+  showToast('우선순위 저장됨');
+}
+function saveNextDate(id) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  c.nextContactDate = document.getElementById('drawerNextDate').value || null;
+  persist(); render(); showToast('다음 연락 일정 저장됨');
+}
+function addLog(id) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  const txt = document.getElementById('drawerMemo').value.trim();
+  if (txt) {
+    c.memo = txt;
+    c.lastContactDate = today();
+    pushLog(c, txt);
+    persist(); render();
+    openDrawer(id);
+    showToast('메모가 히스토리에 기록됨');
+  }
+}
+
+// ══════════════════════════════════════════════
+// Add / Edit Modal
+// ══════════════════════════════════════════════
+function openAddModal(prefill) {
+  editingId = null;
+  ocrSource = false;
+  document.getElementById('addTitle').textContent = '거래처 수기 등록';
+  ['f_company','f_item','f_phone','f_country','f_address','f_contact','f_email','f_website','f_manufacturer','f_memo']
+    .forEach(id => { document.getElementById(id).value = prefill ? (prefill[id.slice(2)]||'') : ''; });
+  document.getElementById('f_status').value   = 'prospect';
+  document.getElementById('f_priority').value = 'normal';
+  document.getElementById('f_nextDate').value = '';
+  document.getElementById('dupWarn').classList.remove('show');
+  document.getElementById('seniorWarn').classList.remove('show');
+  document.getElementById('addOverlay').classList.add('open');
+}
+function openEditModal(id) {
+  const c = clients.find(x=>x.id===id);
+  if (!c) return;
+  editingId = id;
+  document.getElementById('addTitle').textContent = '거래처 정보 수정';
+  document.getElementById('f_company').value     = c.company||'';
+  document.getElementById('f_item').value        = c.item||'';
+  document.getElementById('f_phone').value       = c.phone||'';
+  document.getElementById('f_country').value     = c.importCountry||'';
+  document.getElementById('f_status').value      = c.status||'prospect';
+  document.getElementById('f_address').value     = c.address||'';
+  document.getElementById('f_contact').value     = c.contact||'';
+  document.getElementById('f_email').value       = c.email||'';
+  document.getElementById('f_website').value     = c.website||'';
+  document.getElementById('f_manufacturer').value= c.manufacturer||'';
+  document.getElementById('f_priority').value    = c.priority||'normal';
+  document.getElementById('f_nextDate').value    = c.nextContactDate||'';
+  document.getElementById('f_memo').value        = c.memo||'';
+  document.getElementById('dupWarn').classList.remove('show');
+  document.getElementById('seniorWarn').classList.remove('show');
+  document.getElementById('addOverlay').classList.add('open');
+  closeDrawer();
+}
+function closeAdd() { document.getElementById('addOverlay').classList.remove('open'); editingId=null; }
+
+function checkDup(val) {
+  const key = val.trim().toLowerCase().replace(/\s/g,'');
+  if (!key) { document.getElementById('dupWarn').classList.remove('show'); return; }
+  const dup = clients.find(c => c.company.toLowerCase().replace(/\s/g,'')===key && c.id!==editingId);
+  if (dup) {
+    document.getElementById('dupName').textContent = dup.company;
+    document.getElementById('dupWarn').classList.add('show');
+  } else {
+    document.getElementById('dupWarn').classList.remove('show');
+  }
+  if (isSenior(val)) document.getElementById('seniorWarn').classList.add('show');
+  else document.getElementById('seniorWarn').classList.remove('show');
+}
+
+function saveClient() {
+  const company = document.getElementById('f_company').value.trim();
+  if (!company) { alert('회사명을 입력하세요.'); return; }
+  let status = document.getElementById('f_status').value;
+  if (isSenior(company)) status = 'blocked';
+  const data = {
+    company,
+    item:            document.getElementById('f_item').value.trim(),
+    phone:           document.getElementById('f_phone').value.trim(),
+    importCountry:   document.getElementById('f_country').value.trim(),
+    address:         document.getElementById('f_address').value.trim(),
+    contact:         document.getElementById('f_contact').value.trim(),
+    email:           document.getElementById('f_email').value.trim(),
+    website:         document.getElementById('f_website').value.trim(),
+    manufacturer:    document.getElementById('f_manufacturer').value.trim(),
+    priority:        document.getElementById('f_priority').value,
+    nextContactDate: document.getElementById('f_nextDate').value || null,
+    memo:            document.getElementById('f_memo').value.trim(),
+    status,
+    lastContactDate: today(),
+  };
+  if (editingId) {
+    const idx = clients.findIndex(c=>c.id===editingId);
+    const prev = clients[idx];
+    if (prev.status !== status) pushLog(prev, `상태 변경: ${STATUS[prev.status].label} → ${STATUS[status].label}`);
+    clients[idx] = {...prev, ...data};
+  } else {
+    clients.push({id:uid(), source:'manual', logs:[], createdAt:new Date().toISOString(), ...data});
+  }
+  persist(); render(); closeAdd();
+  showToast(editingId ? '수정되었습니다' : '등록되었습니다');
+}
+
+// ══════════════════════════════════════════════
+// Delete
+// ══════════════════════════════════════════════
+function confirmDel(id) {
+  const c = clients.find(x=>x.id===id);
+  if (!c || !confirm(`'${c.company}'을(를) 삭제하시겠습니까?`)) return;
+  clients = clients.filter(x=>x.id!==id);
+  persist(); render(); showToast('삭제됨');
+}
+
+// ══════════════════════════════════════════════
+// OCR
+// ══════════════════════════════════════════════
+let tesseractReady = false;
+let tesseractWorker = null;
+
+function openOcrModal() {
+  // Reset
+  document.getElementById('ocrFile').value = '';
+  document.getElementById('ocrPreview').style.display = 'none';
+  document.getElementById('ocrProgress').style.display = 'none';
+  document.getElementById('ocrRawWrap').style.display = 'none';
+  document.getElementById('ocrFailMsg').classList.remove('show');
+  document.getElementById('ocrFill').style.width = '0';
+  ['of_company','of_item','of_phone','of_country','of_address','of_contact','of_email','of_website','of_manufacturer','of_memo']
+    .forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('ocrOverlay').classList.add('open');
+}
+function closeOcr() { document.getElementById('ocrOverlay').classList.remove('open'); }
+
+function handleOcrFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  document.getElementById('ocrImg').src = url;
+  document.getElementById('ocrPreview').style.display = 'block';
+  document.getElementById('ocrProgress').style.display = 'block';
+  document.getElementById('ocrRawWrap').style.display = 'none';
+  document.getElementById('ocrFailMsg').classList.remove('show');
+  document.getElementById('ocrFill').style.width = '5%';
+  document.getElementById('ocrStatus').textContent = 'Tesseract.js 로딩 중...';
+  runOcr(file);
+}
+
+async function runOcr(file) {
+  try {
+    if (!window.Tesseract) {
+      document.getElementById('ocrStatus').textContent = 'OCR 라이브러리 로딩 중...';
+      await loadScript('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js');
+    }
+    document.getElementById('ocrFill').style.width = '20%';
+    document.getElementById('ocrStatus').textContent = '한국어 언어 데이터 준비 중...';
+
+    const worker = await Tesseract.createWorker(['kor','eng'], 1, {
+      logger: m => {
+        if (m.status === 'recognizing text') {
+          const pct = Math.round((m.progress||0)*70 + 25);
+          document.getElementById('ocrFill').style.width = pct + '%';
+          document.getElementById('ocrStatus').textContent = `텍스트 인식 중 ${Math.round((m.progress||0)*100)}%...`;
+        }
+      }
+    });
+
+    document.getElementById('ocrFill').style.width = '30%';
+    document.getElementById('ocrStatus').textContent = '텍스트 인식 중...';
+
+    const result = await worker.recognize(file);
+    await worker.terminate();
+
+    document.getElementById('ocrFill').style.width = '100%';
+    document.getElementById('ocrStatus').textContent = '인식 완료!';
+
+    const text = result.data.text || '';
+    document.getElementById('ocrRawText').textContent = text;
+    document.getElementById('ocrRawWrap').style.display = 'block';
+
+    const parsed = parseOcrText(text);
+    const hasData = Object.values(parsed).some(v=>v);
+
+    if (!hasData) {
+      document.getElementById('ocrFailMsg').classList.add('show');
+    } else {
+      if (parsed.company)      document.getElementById('of_company').value      = parsed.company;
+      if (parsed.item)         document.getElementById('of_item').value         = parsed.item;
+      if (parsed.phone)        document.getElementById('of_phone').value        = parsed.phone;
+      if (parsed.importCountry)document.getElementById('of_country').value      = parsed.importCountry;
+      if (parsed.address)      document.getElementById('of_address').value      = parsed.address;
+      if (parsed.manufacturer) document.getElementById('of_manufacturer').value = parsed.manufacturer;
+      showToast('텍스트 인식 완료! 내용을 확인해 주세요.');
+    }
+    setTimeout(()=>{ document.getElementById('ocrProgress').style.display='none'; }, 1500);
+  } catch(e) {
+    console.error(e);
+    document.getElementById('ocrFill').style.width = '0';
+    document.getElementById('ocrProgress').style.display = 'none';
+    document.getElementById('ocrFailMsg').classList.add('show');
+  }
+}
+
+function parseOcrText(text) {
+  const r = {};
+  const clean = v => v ? v.trim().replace(/\s{2,}/g,' ') : '';
+
+  const try_ = (patterns) => {
+    for (const p of patterns) {
+      const m = text.match(p);
+      if (m && m[1]) return clean(m[1]);
+    }
+    return '';
+  };
+
+  r.company = try_([
+    /수입자\s*[:：]\s*([^\n\r]+)/i,
+    /수입원\s*[:：]\s*([^\n\r]+)/i,
+    /수입업체\s*[:：]\s*([^\n\r]+)/i,
+    /Importer\s*[:：]\s*([^\n\r]+)/i,
+    /((?:주|유한|합자|합명)회사\s*[\w가-힣]+)/,
+    /(\(주\)\s*[\w가-힣]+)/,
+    /([\w가-힣]+(?:주\)|㈜))/,
+  ]);
+  r.phone = try_([
+    /(?:전화|연락처|TEL|Tel|T\.)\s*[:：]?\s*([\d\-\(\)\.\s]{7,20})/i,
+    /(0\d{1,2}[-.\s]\d{3,4}[-.\s]\d{4})/,
+    /(\+82[-.\s]?\d[\d\-\.\s]{8,})/,
+  ]);
+  r.address = try_([
+    /(?:주소|소재지|Address)\s*[:：]\s*([^\n\r]+)/i,
+    /((?:서울|부산|대구|인천|광주|대전|울산|세종|경기|강원|충북|충남|전북|전남|경북|경남|제주)[^\n\r]{5,})/,
+  ]);
+  r.item = try_([
+    /(?:품목|제품명|상품명|Product|품명)\s*[:：]\s*([^\n\r]+)/i,
+    /(?:품목명)\s*[:：]\s*([^\n\r]+)/i,
+  ]);
+  r.importCountry = try_([
+    /(?:원산지|생산국|Country\s*of\s*Origin)\s*[:：]\s*([^\n\r]+)/i,
+    /(?:수입국)\s*[:：]\s*([^\n\r]+)/i,
+    /(?:Made\s*in)\s+([A-Za-z가-힣]+)/i,
+  ]);
+  r.manufacturer = try_([
+    /(?:제조자|제조원|제조사|제조업체|Manufacturer)\s*[:：]\s*([^\n\r]+)/i,
+    /(?:생산자|생산업체)\s*[:：]\s*([^\n\r]+)/i,
+  ]);
+
+  // Clean up phone
+  if (r.phone) r.phone = r.phone.replace(/[^\d\-\+]/g,'').slice(0,20);
+
+  return r;
+}
+
+function saveOcrClient() {
+  const company = document.getElementById('of_company').value.trim();
+  if (!company) { alert('회사명을 입력하세요.'); return; }
+  let status = 'prospect';
+  if (isSenior(company)) status = 'blocked';
+  const data = {
+    id: uid(), source: 'ocr', logs: [], createdAt: new Date().toISOString(),
+    company,
+    item:          document.getElementById('of_item').value.trim(),
+    phone:         document.getElementById('of_phone').value.trim(),
+    importCountry: document.getElementById('of_country').value.trim(),
+    address:       document.getElementById('of_address').value.trim(),
+    contact:       document.getElementById('of_contact').value.trim(),
+    email:         document.getElementById('of_email').value.trim(),
+    website:       document.getElementById('of_website').value.trim(),
+    manufacturer:  document.getElementById('of_manufacturer').value.trim(),
+    memo:          document.getElementById('of_memo').value.trim(),
+    priority: 'normal', status,
+    lastContactDate: today(),
+  };
+  clients.push(data);
+  persist(); render(); closeOcr();
+  showToast(status==='blocked' ? '⚠️ 선배 거래처 - 영업불가로 등록됨' : 'OCR 등록 완료!');
+}
+
+// ══════════════════════════════════════════════
+// CSV Export
+// ══════════════════════════════════════════════
+function exportCsv() {
+  const headers = ['회사명','아이템','전화번호','수입지','담당자','이메일','주소','웹사이트','제조사','상태','우선순위','다음연락예정','최근연락일','메모'];
+  const rows = clients.map(c => [
+    c.company, c.item, c.phone, c.importCountry, c.contact, c.email,
+    c.address, c.website, c.manufacturer,
+    STATUS[c.status]?.label||c.status, PRIORITY[c.priority||'normal'].label,
+    c.nextContactDate, c.lastContactDate, c.memo
+  ].map(v => '"'+(v||'').replace(/"/g,'""')+'"'));
+  const csv = '﻿' + [headers, ...rows].map(r=>r.join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `거래처_${today()}.csv`;
+  a.click();
+}
+
+// ══════════════════════════════════════════════
+// Helpers
+// ══════════════════════════════════════════════
+function uid()   { return 'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function today() { return new Date().toISOString().slice(0,10); }
+function esc(s)  { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function pushLog(c, text) { if(!c.logs) c.logs=[]; c.logs.push({text, date:new Date().toLocaleString('ko-KR')}); }
+function mapUrl(addr) {
+  return `https://map.naver.com/p/search/${encodeURIComponent(addr)}`;
+}
+function countryFlag(name) {
+  const flags = {
+    '중국':'🇨🇳','한국':'🇰🇷','일본':'🇯🇵','미국':'🇺🇸','베트남':'🇻🇳','태국':'🇹🇭',
+    '인도':'🇮🇳','인도네시아':'🇮🇩','독일':'🇩🇪','프랑스':'🇫🇷','이탈리아':'🇮🇹',
+    'china':'🇨🇳','korea':'🇰🇷','japan':'🇯🇵','usa':'🇺🇸','vietnam':'🇻🇳',
+    'thailand':'🇹🇭','india':'🇮🇳','germany':'🇩🇪','france':'🇫🇷',
+  };
+  const k = (name||'').toLowerCase().replace(/\s/g,'');
+  return flags[k] || flags[name] || '🌐';
+}
+function loadScript(src) {
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');s.src=src;
+    s.onload=res;s.onerror=rej;document.head.appendChild(s);
+  });
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+function closeBg(e, id) { if(e.target.id===id) document.getElementById(id).classList.remove('open'); }
+
+// ══════════════════════════════════════════════
+// Drag & Drop for OCR
+// ══════════════════════════════════════════════
+const ocrDrop = document.getElementById('ocrDrop');
+ocrDrop.addEventListener('dragover', e=>{ e.preventDefault(); ocrDrop.classList.add('drag'); });
+ocrDrop.addEventListener('dragleave', ()=>ocrDrop.classList.remove('drag'));
+ocrDrop.addEventListener('drop', e=>{
+  e.preventDefault(); ocrDrop.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type.startsWith('image/')) {
+    document.getElementById('ocrImg').src = URL.createObjectURL(file);
+    document.getElementById('ocrPreview').style.display = 'block';
+    document.getElementById('ocrProgress').style.display = 'block';
+    runOcr(file);
+  }
+});
+
+// ══════════════════════════════════════════════
+// Event listeners
+// ══════════════════════════════════════════════
+document.getElementById('searchInput').addEventListener('input', e=>{
+  currentSearch = e.target.value; render();
+});
+document.querySelectorAll('.filter-tag').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.filter-tag').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    currentFilter = btn.dataset.f; render();
+  });
+});
+document.getElementById('sortSel').addEventListener('change', e=>{ currentSort=e.target.value; render(); });
+document.getElementById('countryFilter').addEventListener('change', e=>{ currentCountry=e.target.value; render(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape'){closeAdd();closeOcr();closeDrawer();} });
+
+// ══════════════════════════════════════════════
+// Init
+// ══════════════════════════════════════════════
+load();
+render();
+</script>
+</body>
+</html>
